@@ -9,5 +9,6 @@ python synthesizer_preprocess_audio.py ../dataset/custom_data/test -o /root/src/
 
 python synthesizer_train.py my_run ../dataset/custom_data/speech_data/SV2TTS/synthesizer
 
-python vocoder_preprocess.py dont_need --model_dir synthesizer/saved_models/my_run/ -i ../dataset/custom_data/speech_data/SV2TTS/synthesizer/ -o ../dataset/custom_data/speech_data/SV2TTS/vocoder
+python vocoder_preprocess.py ../dataset/custom_data/speech_data -i ../dataset/custom_data/speech_data/SV2TTS/synthesizer/ -o ../dataset/custom_data/speech_data/SV2TTS/vocoder
+python vocoder_train.py pretrained ../dataset/custom_data/speech_data/
 
