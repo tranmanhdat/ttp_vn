@@ -1,0 +1,4 @@
+1.OS:  Ubuntu 18.04 LST
+2.Lưu trữ: 1TB
+3.RAM: 64GB
+4.GPU: 64GB

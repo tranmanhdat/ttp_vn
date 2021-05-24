@@ -40,7 +40,7 @@ if __name__ == "__main__":
         args.in_dir = os.path.join(args.datasets_root, "SV2TTS", "synthesizer")
     if not hasattr(args, "out_dir"):
         args.out_dir = os.path.join(args.datasets_root, "SV2TTS", "vocoder")
-
+    os.makedirs(args.out_dir, exist_ok=True)
     if args.cpu:
         # Hide GPUs from Pytorch to force CPU processing
         os.environ["CUDA_VISIBLE_DEVICES"] = ""

@@ -1,3 +1,5 @@
+import os
+
 from multiprocess.pool import ThreadPool
 from encoder.params_data import *
 from encoder.config import librispeech_datasets, anglophone_nationalites
@@ -60,19 +62,22 @@ def _init_preprocess_dataset(dataset_name, datasets_root, out_dir) -> (Path, Dat
 
 def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, extension,
                              skip_existing, logger):
-    print("%s: Preprocessing data for %d speakers." % (dataset_name, len(speaker_dirs)))
+    print("%s: Preprocessing data for %d lst." % (dataset_name, len(speaker_dirs)))
     
     # Function to preprocess utterances for one speaker
     def preprocess_speaker(speaker_dir: Path):
         # Give a name to the speaker that includes its dataset
         speaker_name = "_".join(speaker_dir.relative_to(datasets_root).parts)
-        
+        speaker_name = str(speaker_dir).split("/")[-1].split(".")[0]
+        # print("speaker_name " +str(speaker_name))
         # Create an output directory with that name, as well as a txt file containing a 
         # reference to each source file.
         speaker_out_dir = out_dir.joinpath(speaker_name)
+        # speaker_out_dir = out_dir
+        # print("speaker_out_dir " + str(speaker_out_dir))
         speaker_out_dir.mkdir(exist_ok=True)
         sources_fpath = speaker_out_dir.joinpath("_sources.txt")
-        
+        # print("sources_fpath " + str(sources_fpath))
         # There's a possibility that the preprocessing was interrupted earlier, check if 
         # there already is a sources file.
         if sources_fpath.exists():
@@ -86,27 +91,34 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
         
         # Gather all audio files for that speaker recursively
         sources_file = sources_fpath.open("a" if skip_existing else "w")
-        for in_fpath in speaker_dir.glob("**/*.%s" % extension):
-            # Check if the target output file already exists
-            out_fname = "_".join(in_fpath.relative_to(speaker_dir).parts)
-            out_fname = out_fname.replace(".%s" % extension, ".npy")
-            if skip_existing and out_fname in existing_fnames:
-                continue
-                
-            # Load and preprocess the waveform
-            wav = audio.preprocess_wav(in_fpath)
-            if len(wav) == 0:
-                continue
-            
-            # Create the mel spectrogram, discard those that are too short
-            frames = audio.wav_to_mel_spectrogram(wav)
-            if len(frames) < partials_n_frames:
-                continue
-            
-            out_fpath = speaker_out_dir.joinpath(out_fname)
-            np.save(out_fpath, frames)
-            logger.add_sample(duration=len(wav) / sampling_rate)
-            sources_file.write("%s,%s\n" % (out_fname, in_fpath))
+        # for in_fpath in speaker_dir.glob("**/*.%s" % extension):
+        with open(speaker_dir, "r") as f_read:
+            for line in f_read:
+                in_fpath = line.split("\t")[1]
+                elements = in_fpath.split("/")
+                out_fname = "/".join(elements[elements.index("speech_data")+1:])
+                # Check if the target output file already exists
+                # out_fname = "_".join(in_fpath.relative_to(speaker_dir).parts)
+                out_fname = out_fname.replace(".%s" % extension, ".npy")
+                if skip_existing and out_fname in existing_fnames:
+                    continue
+
+                # Load and preprocess the waveform
+                wav = audio.preprocess_wav(in_fpath)
+                if len(wav) == 0:
+                    continue
+
+                # Create the mel spectrogram, discard those that are too short
+                frames = audio.wav_to_mel_spectrogram(wav)
+                if len(frames) < partials_n_frames:
+                    continue
+
+                out_fpath = speaker_out_dir.joinpath(out_fname)
+                path_folder = "/".join(str(out_fpath).split("/")[:-1])
+                os.makedirs(path_folder, exist_ok=True)
+                np.save(out_fpath, frames)
+                logger.add_sample(duration=len(wav) / sampling_rate)
+                sources_file.write("%s,%s\n" % (out_fname, in_fpath))
         
         sources_file.close()
     
@@ -119,57 +131,14 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
 
 
 def preprocess_librispeech(datasets_root: Path, out_dir: Path, skip_existing=False):
-    for dataset_name in librispeech_datasets["dev"]["clean"]:
-        # Initialize the preprocessing
-        dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
-        if not dataset_root:
-            return 
-        
-        # Preprocess all speakers
-        speaker_dirs = list(dataset_root.glob("*"))
-        _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "flac",
-                                 skip_existing, logger)
-
-
-def preprocess_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing=False):
+    dataset_name = ""
     # Initialize the preprocessing
-    dataset_name = "VoxCeleb1"
     dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
     if not dataset_root:
         return
 
-    # Get the contents of the meta file
-    with dataset_root.joinpath("vox1_meta.csv").open("r") as metafile:
-        metadata = [line.split("\t") for line in metafile][1:]
-    
-    # Select the ID and the nationality, filter out non-anglophone speakers
-    nationalities = {line[0]: line[3] for line in metadata}
-    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if 
-                        nationality.lower() in anglophone_nationalites]
-    print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." % 
-          (len(keep_speaker_ids), len(nationalities)))
-    
-    # Get the speaker directories for anglophone speakers only
-    speaker_dirs = dataset_root.joinpath("wav").glob("*")
-    speaker_dirs = [speaker_dir for speaker_dir in speaker_dirs if
-                    speaker_dir.name in keep_speaker_ids]
-    print("VoxCeleb1: found %d anglophone speakers on the disk, %d missing (this is normal)." % 
-          (len(speaker_dirs), len(keep_speaker_ids) - len(speaker_dirs)))
-
     # Preprocess all speakers
+    speaker_dirs = list(dataset_root.glob("*.lst"))
+    print(speaker_dirs)
     _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "wav",
-                             skip_existing, logger)
-
-
-def preprocess_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing=False):
-    # Initialize the preprocessing
-    dataset_name = "VoxCeleb2"
-    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
-    if not dataset_root:
-        return
-    
-    # Get the speaker directories
-    # Preprocess all speakers
-    speaker_dirs = list(dataset_root.joinpath("dev", "aac").glob("*"))
-    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "m4a",
                              skip_existing, logger)
