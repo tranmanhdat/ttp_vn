@@ -10,4 +10,4 @@ model_num_layers = 3
 learning_rate_init = 1e-4
 # speakers_per_batch = 64
 speakers_per_batch = 384
-utterances_per_speaker = 20
+utterances_per_speaker = 10
