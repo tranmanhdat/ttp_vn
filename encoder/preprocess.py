@@ -119,7 +119,6 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
                 np.save(out_fpath, frames)
                 logger.add_sample(duration=len(wav) / sampling_rate)
                 sources_file.write("%s,%s\n" % (out_fname, in_fpath))
-        
         sources_file.close()
     
     # Process the utterances for each speaker

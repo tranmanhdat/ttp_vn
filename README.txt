@@ -1,4 +1,7 @@
-python encoder_preprocess.py my_run ../dataset/custom_data/test --no_visdom
+
+python encoder_preprocess.py /root/src/data/speech_data/lst_process/lst/
+
+python encoder_train.py pretrained /root/src/data/speech_data/lst_process/lst/SV2TTS/encoder/ --no_visdom
 
 rename my_run.pt in encoder/saved_models to pretrained.pt hoặc sửa my_run thành pretrained
 
