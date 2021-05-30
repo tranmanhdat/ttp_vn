@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Speech to Text</title>
+
+</head>
+<body>
+<div><input id="audio_file" type="file" accept="audio/*"/>
+</div>
+<div id="controls">
+    <button id="recordButton">Record</button>
+    <button id="pauseButton" disabled>Pause</button>
+    <button id="stopButton" disabled>Stop</button>
+</div>
+<p>
+    <audio controls id="audio_player"></audio>
+</p>
+<div>
+    <label>User Name: </label>
+    <input type="text" id="userName" name="userName"><br><br>
+</div>
+<div>
+    <button id="uploadServer" disabled>Upload to server</button>
+    <div>
+        <p id="uploadResult"></p>
+    </div>
+</div>
+<div>
+    <label>Text to speech: </label>
+    <input type="text" id="tts" name="tts"><br><br>
+    <button id="genAudio" disabled>Generate Audio</button>
+    <p><strong>Recordings:</strong></p>
+  	<ol id="genList"></ol>
+</div>
+<!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
+<script src="/static/js/getElement.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/recorder.js"></script>
+</body>
+</html>
