@@ -5,7 +5,8 @@ python encoder_train.py pretrained /root/src/data/speech_data/lst_process/lst/SV
 
 rename my_run.pt in encoder/saved_models to pretrained.pt hoặc sửa my_run thành pretrained
 
-python synthesizer_preprocess_audio.py ../dataset/custom_data/test -o /root/src/Text2Speech/dataset/custom_data/speech_data --no_alignments
+python synthesizer_preprocess_audio.py ../dataset/custom_data/test -o
+/root/src/Text2Speech/dataset/custom_data/speech_data --no_alignments -n 8
 python synthesizer_preprocess_audio.py /root/src/data/speech_data/lst_process/lst/ -o /root/src/data/speech_data
 --no_alignments
 python synthesizer_preprocess_embeds.py /root/src/data/speech_data/SV2TTS/synthesizer/
