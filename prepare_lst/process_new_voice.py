@@ -3,7 +3,7 @@ import os, sys
 in_folder = sys.argv[1]
 out_folder = sys.argv[2]
 os.makedirs(out_folder, exist_ok=True)
-f_in_1 = os.path.join(in_folder, "new_voice.lst")
+f_in_1 = os.path.join(in_folder, "voice.lst")
 data_1 = open(f_in_1, "r").readlines()
 i = 1
 for i in range(1, 26):
@@ -13,7 +13,7 @@ for i in range(1, 26):
         folder_name = "P0" + str(i)
     else:
         folder_name = "P" + str(i)
-    f_out = os.path.join(out_folder, "new_voice_" + str(i) + ".lst")
+    f_out = os.path.join(out_folder, "voice_" + str(i) + ".lst")
     f_w = open(f_out, "w+", encoding="UTF-8")
     for line in data_1:
         if len(line.rstrip()) > 10:
