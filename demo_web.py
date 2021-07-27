@@ -4,13 +4,14 @@ from datetime import datetime
 
 from demo_web_class import init, TextToSpeech
 from flask import Flask, render_template, request, flash, redirect, session, send_from_directory, jsonify
+from deploy_support.process_text import text_preprocess
 
 app = Flask(__name__)
 app.secret_key = "abc_xyz"
 
 app.config['UPLOAD_FOLDER'] = os.getcwd() + '/static/audio_upload/'
-app.config['DOWNLOAD_FOLDER'] = os.getcwd() + '/static/audio_download/'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['DOWNLOAD_FOLDER'] = os.getcwd() + '/static/audio_download/'
 os.makedirs(app.config['DOWNLOAD_FOLDER'], exist_ok=True)
 
 
@@ -23,39 +24,38 @@ def home():
 def upload_audio():
     if request.method == 'POST':
         files = request.files.getlist('audio_data')
-        session["upload_folder"] = os.path.join(app.config['UPLOAD_FOLDER'], request.form['user_name'])
-        session["download_folder"] = os.path.join(app.config['DOWNLOAD_FOLDER'], request.form['user_name'])
-        session["save_name_upload"] = datetime.now().strftime('%y_%m_%d_%H_%M_%S') + ".wav"
-        os.makedirs(session["upload_folder"], exist_ok=True)
-        os.makedirs(session["download_folder"], exist_ok=True)
+        save_name_upload = datetime.now().strftime('%y_%m_%d_%H_%M_%S') + ".wav"
         if files.count == 0:
             flash('No file selected for uploading')
             return redirect(request.url)
         else:
-            path_to_file = os.path.join(session["upload_folder"], session["save_name_upload"])
+            path_to_file = os.path.join(app.config['UPLOAD_FOLDER'], save_name_upload)
             files[0].save(path_to_file)
             print("Saved", path_to_file)
             tts.take_sample(path_to_file)
-            return "Upload Done!"
+            return "Upload {} Done!".format(save_name_upload)
 
 
 @app.route('/gen_audio', methods=['POST'])
 def gen_audio():
     if request.method == 'POST':
         text = request.form['tts']
+        print("Processing: {}".format(text))
+        text = text_preprocess(text)
+        print("Done: {}".format(text))
         save_name = datetime.now().strftime('%y%m%d%H%M%S')
-        session["save_name_download"] = save_name + ".wav"
-        path_text = os.path.join(session["download_folder"], save_name + ".txt")
+        save_name_download = save_name + ".wav"
+        path_text = os.path.join(app.config['DOWNLOAD_FOLDER'], save_name + ".txt")
         with open(path_text, "w+") as f_write:
             f_write.write(text)
-        path_to_save = os.path.join(session["download_folder"], session["save_name_download"])
+        path_to_save = os.path.join(app.config['DOWNLOAD_FOLDER'], save_name_download)
         tts.gen_audio(text, path_to_save)
         return jsonify({"name":save_name})
 
 @app.route('/get_audio')
 def get_audio():
     file_name = request.args.get('file_name')
-    return send_from_directory(session["download_folder"], file_name+".wav", as_attachment=True,
+    return send_from_directory(app.config['DOWNLOAD_FOLDER'], file_name+".wav", as_attachment=True,
                                    mimetype="audio/wav")
 
 if __name__ == '__main__':

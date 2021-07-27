@@ -19,12 +19,12 @@ audio_file.onchange = function () {
     wavContent = files[0];
     audioPlayer.src = file;
     // audio_player.play();
-    // uploadServer.disabled = false;
+    uploadServer.disabled = false;
 };
-userName.onchange = function () {
-    uploadServer.disabled = userName.value.length <= 0;
-    // console.log(uploadServer.disabled);
-};
+// userName.onchange = function () {
+//     uploadServer.disabled = userName.value.length <= 0;
+//     // console.log(uploadServer.disabled);
+// };
 
 textToSpeech.onchange = function () {
     genAudio.disabled = textToSpeech.value.length <= 0;
@@ -105,7 +105,7 @@ function startUpload() {
     };
     var fd = new FormData();
     fd.append("audio_data", wavContent);
-    fd.append("user_name", userName.value);
+    // fd.append("user_name", userName.value);
     xhr.open("POST", "/upload_audio", true);
     xhr.send(fd);
 }
@@ -119,10 +119,18 @@ function startGenAudio() {
             var fileName = JSON.parse(content).name;
             var au = document.createElement('audio');
             au.controls = true;
+            au.controlsList="nodownload";
             au.src = '/get_audio?file_name=' + fileName;
+            var downloadButton = document.createElement('a');
+            downloadButton.href = '/get_audio?file_name=' + fileName;
+            // downloadButton.target = '';
+            // downloadButton.download = fileName;
+            var t = document.createTextNode("Download");
+            downloadButton.appendChild(t);
             var li = document.createElement('li');
             li.appendChild(document.createTextNode(fileName + ".wav : " + textToSpeech.value));
             li.appendChild(au);
+            li.appendChild(downloadButton);
             genList.appendChild(li);
         }
     };
