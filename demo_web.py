@@ -40,9 +40,9 @@ def upload_audio():
 def gen_audio():
     if request.method == 'POST':
         text = request.form['tts']
-        print("Processing: {}".format(text))
+        # print("Processing: {}".format(text))
         text = text_preprocess(text)
-        print("Done: {}".format(text))
+        # print("Done: {}".format(text))
         save_name = datetime.now().strftime('%y%m%d%H%M%S')
         save_name_download = save_name + ".wav"
         path_text = os.path.join(app.config['DOWNLOAD_FOLDER'], save_name + ".txt")
