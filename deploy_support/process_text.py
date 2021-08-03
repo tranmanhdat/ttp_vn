@@ -1,7 +1,8 @@
 import codecs
 import time
 import regex as re
-from deploy_support._exe_date import Date_to_word,acronym_to_word
+from deploy_support._exe_date import Date_to_word, acronym_to_word
+
 uniChars = "àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệđìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆĐÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴÂĂĐÔƠƯ"
 unsignChars = "aaaaaaaaaaaaaaaaaeeeeeeeeeeediiiiiooooooooooooooooouuuuuuuuuuuyyyyyAAAAAAAAAAAAAAAAAEEEEEEEEEEEDIIIOOOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYAADOOU"
 
@@ -117,7 +118,6 @@ def chuan_hoa_dau_tu_tieng_viet(word):
     return ''.join(chars)
 
 
-
 def chuan_hoa_dau_cau_tieng_viet(sentence):
     """
         Chuyển câu tiếng việt về chuẩn gõ dấu kiểu cũ.
@@ -135,44 +135,70 @@ def chuan_hoa_dau_cau_tieng_viet(sentence):
         words[index] = ''.join(cw)
     return ' '.join(words)
 
+
 def viet_tat(sentence):
-    replace = {"hcm":" hồ chí minh ", "vksnd":" viện kiểm sát nhân dân ", "catp": "công an thành phố  ","CATP":" công an thành phố  ", "csgt":" cảnh sát giao thông ","bs":" biển số ",
-                "pc67":" phòng cảnh sát giao thông đường bộ đường sắt "," blhs":" bộ luật hình sự ","blds":" bộ luật dân sự "," tt":"thông tư ","bca":" bộ công an ",
-                "nđ":" nghị định ","cp":" chính phủ ","icon":"i con"," tw":" trung ương ","blog ":"bờ lóc","qđ":" quy định","btm":" bộ tham mưu","ubnd":" ủy ban nhân dân",
-                "gdđt":" giáo dục đào tạo "," csvc":" cơ sở vật chất "," sxd":" ","tđda":" ","youtube":"diu túp ","facebook":"phây búc ","tp":" thành phố ","hđxx":" hội đồng xét xử ",
-                "gtvt":" giao thông vận tải ","xvn":" xã Việt Nam ","tand":" tòa án nhân dân","csđt":" cảnh sát điều tra","cqđt":" cơ quan điều tra","vks":" viện kiểm sát ","tnhh":" trách nhiệm hữu hạn ",
-                ".000.000":" triệu "
-    }
+    replace = {"hcm": " hồ chí minh ", "vksnd": " viện kiểm sát nhân dân ", "catp": "công an thành phố  ",
+               "CATP": " công an thành phố  ", "csgt": " cảnh sát giao thông ", "bs": " biển số ",
+               "pc67": " phòng cảnh sát giao thông đường bộ đường sắt ", " blhs": " bộ luật hình sự ",
+               "blds": " bộ luật dân sự ", " tt": "thông tư ", "bca": " bộ công an ",
+               "nđ": " nghị định ", "cp": " chính phủ ", "icon": "i con", " tw": " trung ương ", "blog ": "bờ lóc",
+               "qđ": " quy định", "btm": " bộ tham mưu", "ubnd": " ủy ban nhân dân",
+               "gdđt": " giáo dục đào tạo ", " csvc": " cơ sở vật chất ", " sxd": " ", "tđda": " ",
+               "youtube": "diu túp ", "facebook": "phây búc ", "tp": " thành phố ", "hđxx": " hội đồng xét xử ",
+               "gtvt": " giao thông vận tải ", "xvn": " xã Việt Nam ", "tand": " tòa án nhân dân",
+               "csđt": " cảnh sát điều tra", "cqđt": " cơ quan điều tra", "vks": " viện kiểm sát ",
+               "tnhh": " trách nhiệm hữu hạn ",
+               ".000.000": " triệu "
+               }
     for key in replace:
-        #sentence = sentence.replace(key, replace[key])
-        sentence=re.sub(r'{0}'.format(key),replace[key],sentence)
+        # sentence = sentence.replace(key, replace[key])
+        sentence = re.sub(r'{0}'.format(key), replace[key], sentence)
     return sentence
 
+
 def remove_URL(sentence):
-    sen=""
+    sen = ""
     for item in sentence.splitlines():
-        temp=re.findall(r'http\S+|www\S+|p://\S+',item)
-        temp1=re.findall(r'\b([a-zA-Z]*).(com|net|org|info|coop|int|com.au|co.uk|org.uk|ac.uk|vn|com.vn)\b',item)
-        temp2=re.findall(r'\S+@',item)
+        temp = re.findall(r'http\S+|www\S+|p://\S+', item)
+        temp1 = re.findall(r'\b([a-zA-Z]*).(com|net|org|info|coop|int|com.au|co.uk|org.uk|ac.uk|vn|com.vn)\b', item)
+        temp2 = re.findall(r'\S+@', item)
         if not temp and not temp1 and not temp2:
-            sen=sen+item+"\r\n"         
+            sen = sen + item + "\r\n"
     return sen
+
+
+def read_dict(path_dict):
+    data = list()
+    with codecs.open(path_dict, "r",
+                     encoding="utf8") as f_in:
+        for word in f_in.read().splitlines():
+            data.append(word)
+    special_words = ".,;:!?"
+    for word in special_words:
+        data.append(word)
+    return data
+
 
 def text_preprocess(sentence):
     sentence = sentence.rstrip().lower()
-    if sentence[len(sentence)-1]==".":
-        sentence = sentence[:len(sentence)-1]
+    if sentence[len(sentence) - 1] == ".":
+        sentence = sentence[:len(sentence) - 1]
     sentence = viet_tat(sentence)
     sentence = chuan_hoa_dau_cau_tieng_viet(sentence)
-    sentence=remove_URL(sentence)
-    sentence=Date_to_word(sentence)
-    sentence= acronym_to_word(sentence)
-    replace = {", ":" ", "\'": "", "\"":"", "& ":"và ", "%":" phần trăm ","=":" ","[":" ","]":" ","@":" ",":":" ",
-               "đồng/kg":"đồng trên kilogam", "?":"", "!":"","(":" ",")":" ","toyota":"tô dô ta ","fortuner":"pho tun nơ","ollolai":"ô lô lai ","seri":"sê ri ","italia":"i ta li a ",
-               "usd":"đô ","./":"", "; ":" ", ": ":" ",",":" ","-":" ","/":" ","&":" ",":":" ",";":" ",".":" ","@":" ","+":" ","mm²":"","_":"","*":"",">":"","|":"","=":"","[":"","]":"","^":"","<":"","m²":"","³":"",
-             "$":"","¹":"","¼":"","}":"","{":"","λ":"","½":"","⅓":"","²":"","简中 繁中":"","¾":"","ü":"","ö":"","ак":"","м":"","т":"","⁰":"","каб":"каб","кр":"","α":"",
-             "①":"","панцирь":"","ß":"","čė":"","ш":"","čė":""}
+    sentence = remove_URL(sentence)
+    sentence = Date_to_word(sentence)
+    sentence = acronym_to_word(sentence)
+    replace = {",": " , ", "\'": "", "\"": "", "&": " và ", "%": " phần trăm ", "=": " bằng ", "[": " ", "]": " ",
+               "@": " ", ":": " : ", "đồng/kg": "đồng trên kilogam", "?": " ? ", "!": " ! ", "(": " ", ")": " ",
+               ";": " ; ", "-": " ", ".": " . ", "+": " ", "_": "", "*": "", ">": "", "|": "", "^": "", "<": "",
+               "$": "","}": "", "{": ""}
+
     for key in replace:
         sentence = sentence.replace(key, replace[key])
     words = sentence.split(" ")
-    return " ".join(words)
+    dict_words = read_dict("deploy_support/dict.txt")
+    sentence = ""
+    for word in words:
+        if word in dict_words:
+            sentence = sentence + " "+word
+    return sentence

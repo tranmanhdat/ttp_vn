@@ -84,42 +84,86 @@ class TextToSpeech:
         # speaker encoder interfaces. These are mostly for in-depth research. You will typically
         # only use this function (with its default parameters):
         self.embed = encoder.embed_utterance(preprocessed_wav)
-        print(self.embed)
-        print(sum(self.embed))
+        # print(self.embed)
+        # print(sum(self.embed))
         print("Created the embedding")
 
     def gen_audio(self, text, audio_path):
         ## Generating the spectrogram
 
         # The synthesizer works in batch, so you need to put your data in a list or numpy array
-        texts = [text]
-        embeds = [self.embed.copy()]
-        print(text)
+        texts, padding = self.split_text(text)
+        print(texts)
+        embeds = [self.embed.copy()] * len(texts)
+        # print(text)
         # If you know what the attention layer alignments are, you can retrieve them here by
         # passing return_alignments=True
         specs = self.synthesizer.synthesize_spectrograms(texts, embeds)
-        spec = specs[0]
         print("Created the mel spectrogram")
         ## Generating the waveform
         print("Synthesizing the waveform:")
+        # spec = specs[0]
+        list_generate_wav = []
+        i = 0
+        for spec in specs:
+            # Synthesizing the waveform is fairly straightforward. Remember that the longer the
+            # spectrogram, the more time-efficient the vocoder.
+            generated_wav = vocoder.infer_waveform(spec)
 
-        # Synthesizing the waveform is fairly straightforward. Remember that the longer the
-        # spectrogram, the more time-efficient the vocoder.
-        generated_wav = vocoder.infer_waveform(spec)
+            ## Post-generation
+            # There's a bug with sounddevice that makes the audio cut one second earlier, so we
+            # pad it.
+            generated_wav = np.pad(generated_wav, (0, self.synthesizer.sample_rate), mode="constant")
 
-        ## Post-generation
-        # There's a bug with sounddevice that makes the audio cut one second earlier, so we
-        # pad it.
-        generated_wav = np.pad(generated_wav, (0, self.synthesizer.sample_rate), mode="constant")
-
-        # Trim excess silences to compensate for gaps in spectrograms (issue #53)
-        generated_wav = encoder.preprocess_wav(generated_wav)
-
+            # Trim excess silences to compensate for gaps in spectrograms (issue #53)
+            generated_wav = encoder.preprocess_wav(generated_wav)
+            generated_wav = np.pad(generated_wav, (0, int(self.synthesizer.sample_rate*padding[i])), mode="constant")
+            list_generate_wav.append(generated_wav)
+            # path_audio = "/root/src/Text2Speech/tts_vn/static/audio_download/" + str(i)+".wav"
+            i = i +  1
+            # sf.write(path_audio, generated_wav.astype(np.float32), self.synthesizer.sample_rate)
+        generated_wav = np.concatenate(list_generate_wav)
         # Save it on the disk
         print(generated_wav.dtype)
         sf.write(audio_path, generated_wav.astype(np.float32), self.synthesizer.sample_rate)
         print("\nSaved output as %s\n\n" % audio_path)
 
+    def split_text(self, text):
+        """
+        split text to small pieces to generate
+        Args:
+            text: need to divide
+
+        Returns:
+            texts: list of small pieces text
+            padding: denote padding type (, or . or something else)
+        """
+        # temp_text = text.replace(",", ".").replace(";", ".").replace(":", ".").replace("!", ".").replace("?", ".")
+        padding_time = {",":0.25,".":0.5,":":0.5,";":0.5}
+        elements = " ".join(text.split(" ")).split(" ")
+        list_text = []
+        tmp_text = []
+        len_tmp_text = 0
+        padding = []
+        for element in elements:
+            if element in padding_time:
+                if len_tmp_text>0:
+                    list_text.append(" ".join(tmp_text))
+                    tmp_text = []
+                    len_tmp_text = 0
+                padding.append(padding_time[element])
+            else:
+                tmp_text.append(element)
+                len_tmp_text = len_tmp_text + 1
+                if len_tmp_text==15:
+                    list_text.append(" ".join(tmp_text))
+                    padding.append(0)
+                    tmp_text = []
+                    len_tmp_text = 0
+        if 0 < len_tmp_text < 15:
+            list_text.append(" ".join(tmp_text))
+            padding.append(0)
+        return list_text, padding
 
 def init():
     ## Info & args
