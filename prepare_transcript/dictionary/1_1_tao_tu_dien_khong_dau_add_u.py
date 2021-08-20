@@ -2,7 +2,8 @@ import os, sys
 import locale
 locale.setlocale(locale.LC_COLLATE, 'vi_VN')
 if __name__ == '__main__':
-    path_folder = sys.argv[1]
+    # path_folder = sys.argv[1]
+    path_folder = "B:\PycharmProjects\TTS_VN\prepare_transcript\dictionary\data_merger"
     phu_am_dau = []
     phu_am_dau_file = os.path.join(path_folder, "phu_am_dau.txt")
     phu_am_dau_file = open(phu_am_dau_file,"r",encoding="UTF-8")
@@ -114,12 +115,12 @@ if __name__ == '__main__':
                     for dau_character in list_dau:
                         dict_full.append(start_character+ start_2_character + middle_character[0] + dau_character + end_character)
 
-    old_dict = []
-    old_dict_file = os.path.join(path_folder, "dict_2.txt")
-    old_dict_file = open(old_dict_file, "r", encoding="UTF-8")
-    data = old_dict_file.readlines()
-    for line in data:
-        old_dict.append(line.rstrip())
+    # old_dict = []
+    # old_dict_file = os.path.join(path_folder, "dict_2.txt")
+    # old_dict_file = open(old_dict_file, "r", encoding="UTF-8")
+    # data = old_dict_file.readlines()
+    # for line in data:
+    #     old_dict.append(line.rstrip())
 
     dict_full_last = sorted(dict_full, key=locale.strxfrm)
     dict_full_last = list(dict.fromkeys(dict_full_last))
@@ -128,6 +129,6 @@ if __name__ == '__main__':
         #         or word.__contains__("ưm") or word.__contains__("ừm") or word.__contains__("ứm")\
         #         or word.__contains__("ữm") or word.__contains__("ửm") or word.__contains__("ựm") \
         #         or word.__contains__("ơc") or word.__contains__("ớc") or word.__contains__("ợc"):
-        if word not in old_dict:
+        # if word not in old_dict:
             f_dict.write(word+"\n")
     f_dict.close()
